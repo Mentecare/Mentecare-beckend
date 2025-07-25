@@ -18,12 +18,36 @@ import {
   Stethoscope,
   Search
 } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 
 export default function HomePage({ onNavigate }) {
   const { user } = useAuth();
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const handleOnboarding = async () => {
+    try {
+      const response = await fetch('https://api.mentecare.com.br/professionals/stripe-onboarding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Se sua API requer autenticação para esta rota, você precisará incluir o token aqui.
+          // Ex: 'Authorization': `Bearer ${seuTokenDeAuth}` 
+        },
+        body: JSON.stringify({ professionalId: user.id }) // Usando o ID do usuário logado
+      });
 
+      if (!response.ok) {
+        throw new Error('Falha na resposta da API');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url; // Redireciona o profissional para a página segura do Stripe
+
+    } catch (error) {
+      console.error('Erro ao iniciar onboarding:', error);
+      alert('Não foi possível iniciar o processo de configuração.');
+    }
+  };
   useEffect(() => {
     if (user) {
       loadUpcomingAppointments();
@@ -245,6 +269,14 @@ export default function HomePage({ onNavigate }) {
                       >
                         <Stethoscope className="w-6 h-6" />
                         <span className="text-sm">Perfil Profissional</span>
+                      </Button>
+                       <Button
+                        variant="outline"
+                        className="h-20 flex-col space-y-2 text-green-600 hover:text-green-700"
+                        onClick={handleOnboarding}
+                      >
+                        <Banknote className="w-6 h-6" />
+                        <span className="text-sm">Configurar Pagamentos</span>
                       </Button>
                     </>
                   )}
